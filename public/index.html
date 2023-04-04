@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Carter+One&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./css/index.css">
+    <link rel="stylesheet" href="./css/style.css">
+    <link rel="stylesheet" href="./css/loading-screen.css">
+
+    <script src="./src/main.js" type="module" defer></script>
+</head>
+<body>
+    <div class="loading-screen loading">
+        <div class="loader">
+            <p>Loading...</p>
+            <div class="spinner"></div>
+        </div>
+    </div>
+
+    <div class="loading-screen searching hidden">
+        <div class="loader">
+            <p>Finding Players...</p>
+            <div class="spinner"></div>
+        </div>
+    </div>
+
+    <div class="main-screen">
+        <div class="home content">
+            <h2 class="title">Chess 3D</h2>
+            <div class="input-container card">
+                <div>
+                    <input type="text" placeholder="Username" maxlength="15" class="username-input"/>
+                    <button class="play-btn">Play</button>
+                </div>
+                <div>
+                    <input type="text" placeholder="Game ID" maxlength="6" class="room-id-input"/>
+                    <button class="join-game-btn">Join Game</button>
+                    <button class="create-game-btn">Create Game</button>
+                </div>
+            </div>
+        </div>
+        <div class="create-room content hidden">
+            <h2 class="title">Lobby</h2>
+            <div class="wrapper">
+                <div class="lobby-container card">
+                    <div class="options section">
+                        <div class="option">
+                            <label>Play as white</label>
+                            <label class="switch">
+                                <input type="checkbox">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="user-list section">
+                        <h3>Players</h3>
+                        <div class="users"></div>
+                    </div>
+                    <div class="room-id-container">Game ID: <span class="room-id">L2A31K</span></div>
+                </div>
+                <div class="bottom-content">
+                    <button class="back-btn"><ion-icon name="arrow-back-outline"></ion-icon></button>
+                    <button class="start-game-btn">Start Game</button>
+                </div>
+            </div>
+        </div>
+        <div class="background canvas-container"></div>
+    </div>
+    <div class="game-screen canvas-container hidden">
+        <div class="promote-options hidden">
+            <div class="options-list">
+                <div class="option" id="knight">Knight</div>
+                <div class="option" id="bishop">Bishop</div>
+                <div class="option" id="rook">Rook</div>
+                <div class="option" id="queen">Queen</div>
+            </div>
+        </div>
+        <div class="win-screen hidden">
+            <h2>You Win!</h2>
+            <button class="back-btn">Back</button>
+        </div>
+    
+        <div class="lose-screen hidden">
+            <h2>You Lose</h2>
+            <button class="back-btn">Back</button>
+        </div>
+    </div>
+    
+    <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
+    <!-- <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script> -->
+    <script src="/socket.io/socket.io.js"></script>
+</body>
+</html>

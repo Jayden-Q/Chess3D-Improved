@@ -1,0 +1,8 @@
+Castling
+King captured - Game over
+
+Considering:
+- Rematch
+- Check & checkmate
+- En passant
+- Elo system
