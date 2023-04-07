@@ -215,6 +215,60 @@ class Piece {
         return moves;
     }
 
+    CheckPieceAtCoord(coordinate) { return this._pieces.find(piece => piece.coordinate == coordinate); }
+    CreateCoordinate(xi, yi) { return `${x_coord[xi]}${y_coord[yi]}`; }
+    SetHasMoved(hasMoved) { this._has_moved = hasMoved; }
+    GetPossibleMoves() {}
+}
+
+class Pawn extends Piece {
+    constructor(coordinate) {
+        super(coordinate);
+
+        this._type = "Pawn";
+        this._mesh = Assets.models.find(model => model.name == this._type).data.clone();
+    }
+
+    GetPossibleMoves() {
+        return this._side == "white" ?
+            this.GetPossibleForwardMoves(this._has_moved ? 1 : 2) :
+            this.GetPossibleBackwardMoves(this._has_moved ? 1 : 2);
+    }
+}
+
+class Rook extends Piece {
+    constructor(coordinate) {
+        super(coordinate);
+
+        this._type = "Rook";
+        this._mesh = Assets.models.find(model => model.name == this._type).data.clone();
+    }
+
+    GetPossibleMoves() {
+        const moves = [
+            ...this.GetPossibleForwardMoves(),
+            ...this.GetPossibleBackwardMoves(),
+            ...this.GetPossibleSidewayMoves(),
+        ];
+
+        return moves;
+    }
+}
+
+class Knight extends Piece {
+    constructor(coordinate) {
+        super(coordinate);
+
+        this._type = "Knight";
+        this._mesh = Assets.models.find(model => model.name == this._type).data.clone();
+    }
+
+    GetPossibleMoves() {
+        const moves = this.GetPossibleKnightMoves();
+
+        return moves;
+    }
+
     GetPossibleKnightMoves() {
         const [x, y] = this.GetXYIndices();
 
@@ -310,60 +364,6 @@ class Piece {
 
         return moves;
     }
-
-    CheckPieceAtCoord(coordinate) { return this._pieces.find(piece => piece.coordinate == coordinate); }
-    CreateCoordinate(xi, yi) { return `${x_coord[xi]}${y_coord[yi]}`; }
-    SetHasMoved(hasMoved) { this._has_moved = hasMoved; }
-    GetPossibleMoves() {}
-}
-
-class Pawn extends Piece {
-    constructor(coordinate) {
-        super(coordinate);
-
-        this._type = "Pawn";
-        this._mesh = Assets.models.find(model => model.name == this._type).data.clone();
-    }
-
-    GetPossibleMoves() {
-        return this._side == "white" ?
-            this.GetPossibleForwardMoves(this._has_moved ? 1 : 2) :
-            this.GetPossibleBackwardMoves(this._has_moved ? 1 : 2);
-    }
-}
-
-class Rook extends Piece {
-    constructor(coordinate) {
-        super(coordinate);
-
-        this._type = "Rook";
-        this._mesh = Assets.models.find(model => model.name == this._type).data.clone();
-    }
-
-    GetPossibleMoves() {
-        const moves = [
-            ...this.GetPossibleForwardMoves(),
-            ...this.GetPossibleBackwardMoves(),
-            ...this.GetPossibleSidewayMoves(),
-        ];
-
-        return moves;
-    }
-}
-
-class Knight extends Piece {
-    constructor(coordinate) {
-        super(coordinate);
-
-        this._type = "Knight";
-        this._mesh = Assets.models.find(model => model.name == this._type).data.clone();
-    }
-
-    GetPossibleMoves() {
-        const moves = this.GetPossibleKnightMoves();
-
-        return moves;
-    }
 }
 
 class Bishop extends Piece {
@@ -420,6 +420,18 @@ class King extends Piece {
         ];
 
         return moves;
+    }
+
+    GetCastleLeftMove() {
+        const [x, y] = this.GetXYIndices();
+        const newX = this._side == 'white' ? x - 2 : x + 2;
+        return this.CreateCoordinate(newX, y);
+    }
+
+    GetCastleRightMove() {
+        const [x, y] = this.GetXYIndices();
+        const newX = this._side == 'white' ? x + 2 : x - 2;
+        return this.CreateCoordinate(newX, y);
     }
 }
 

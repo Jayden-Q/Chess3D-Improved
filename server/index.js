@@ -76,7 +76,8 @@ const OnGameMove = (socket, coords) => {
   const otherPlayer = room.GetOtherPlayer(player.ID); // Get the other player data
   if (!otherPlayer) return; // Exit if there is no other player
 
-  socket.to(otherPlayer.ID).emit('game:move', coords); // Tell the other player where the current player moved
+  if (Array.isArray(coords)) for (const coord of coords) socket.to(otherPlayer.ID).emit('game:move', coord); // Tell the other player where the current player moved
+  else socket.to(otherPlayer.ID).emit('game:move', coords);
 
   room.SwitchTurn(); // Switch turns
 }
@@ -233,8 +234,8 @@ function OnNewConnection(socket) {
 
   socket.on('username', username => OnGetUsername(socket, username));
   socket.on('game:search', () => OnSearchForGames(socket));
-  socket.on('game:move', coords => OnGameMove(socket, coords));
-  socket.on('game:promote_piece', data => OnGamePromotePiece(socket, data))
+  socket.on('game:move', (coords) => OnGameMove(socket, coords));
+  socket.on('game:promote_piece', data => OnGamePromotePiece(socket, data));
   socket.on('game:win', () => OnWinGame(socket));
   socket.on('room:create', () => OnCreateCustomRoom(socket));
   socket.on('room:join', (roomID) => OnJoinCustomRoom(socket, roomID));

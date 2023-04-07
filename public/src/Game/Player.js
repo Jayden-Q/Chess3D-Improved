@@ -4,6 +4,9 @@ import Socket from '../Socket.js';
 import DOMElements from '../DOMElements.js';
 import { Knight, Bishop, Rook, Queen } from './Piece.js';
 
+const x_coord = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
+const y_coord = [1, 2, 3, 4, 5, 6, 7, 8];
+
 class Player {
     static instance;
 
@@ -27,6 +30,9 @@ class Player {
         this._selected_piece = null;
         this._is_moving_piece = false;
         this._possible_move_squares = [];
+
+        this._castle_left_square = null;
+        this._castle_right_square = null;
 
         this.SetUpSocketEventListeners();
 
@@ -60,8 +66,6 @@ class Player {
                 data.type == 'queen' ? Queen : null;
 
             if (!PieceType) return;
-
-            console.log('Promoted type: ' + PieceType);
 
             const removed_pawn = this._chessboard.GetPieceByCoordinate(data.at);
 
@@ -153,6 +157,38 @@ class Player {
             }
         }
 
+        if (this._castle_left_square && this._castle_left_square.coordinate == coords.to) {
+            const left_rook_coord = this._side == 'white' ? 'A1' : 'H8';
+            const left_rook = this._chessboard.GetPieceByCoordinate(left_rook_coord);
+
+            const [x, y] = movePiece.GetXYIndices();
+
+            const new_coord = `${this._side == 'white' ? x_coord[x + 1] : x_coord[x - 1]}${y_coord[y]}`;
+
+            left_rook.SetCoordinate(new_coord);
+            left_rook.SetPosition(this._chessboard.GetSquareByCoordinate(left_rook.coordinate).position);
+            left_rook.SetHasMoved(true);
+
+            Socket.instance.EmitEvent('game:move', [coords, { from: left_rook_coord, to: new_coord }]);
+
+            return;
+        } else if (this._castle_right_square && this._castle_right_square.coordinate == coords.to) {
+            const right_rook_coord = this._side == 'white' ? 'H1' : 'A8';
+            const right_rook = this._chessboard.GetPieceByCoordinate(right_rook_coord);
+
+            const [x, y] = movePiece.GetXYIndices();
+
+            const new_coord = `${this._side == 'white' ? x_coord[x - 1] : x_coord[x + 1]}${y_coord[y]}`;
+
+            right_rook.SetCoordinate(new_coord);
+            right_rook.SetPosition(this._chessboard.GetSquareByCoordinate(right_rook.coordinate).position);
+            right_rook.SetHasMoved(true);
+
+            Socket.instance.EmitEvent('game:move', coords, { from: right_rook_coord, to: new_coord });
+
+            return;
+        }
+
         Socket.instance.EmitEvent('game:move', coords);
     }
 
@@ -184,6 +220,8 @@ class Player {
     
         for (let i = 0; i < this._chessboard._squares.length; i++)
             this._chessboard._squares[i].HideMove();
+
+        this._castle_left_square = this._castle_right_square = null;
     }
 
     SelectPiece(coordinate) {
@@ -203,19 +241,87 @@ class Player {
         const possible_move_squares = possible_move_coords.map(coord => this._chessboard.GetSquareByCoordinate(coord));
 
         /* Display all the possible moves */
-        for (let i = 0; i < possible_move_squares.length; i++) {
-            possible_move_squares[i].ShowMove();
-        }
+        for (let i = 0; i < possible_move_squares.length; i++) possible_move_squares[i].ShowMove();
 
-        // Check if the king has moved already
-        // If the king has, then exit
-        //
-        // Get the left and right rooks
-        // Check if they moved
-        // If they didn't:
-        //  Check if there's any pieces between
-        //  If there aren't, then display a second move
-        //  If the king is moved there, move the king there and move the rook to the square on the other side of the king
+        this._castle_left_square = this._castle_right_square = null;
+
+        if (this._selected_piece._type == 'King' && !this._selected_piece._has_moved) {
+            const left_rook_coord = this._side == 'white' ? 'A1' : 'H8';
+            const right_rook_coord = this._side == 'white' ? 'H1' : 'A8';
+
+            const left_rook = this._chessboard.GetPieceByCoordinate(left_rook_coord);
+            const right_rook = this._chessboard.GetPieceByCoordinate(right_rook_coord);
+
+            if (left_rook && !left_rook._has_moved) {
+                let can_castle_left = true;
+                const [x, y] = this._selected_piece.GetXYIndices();
+
+                if (this._side == 'white') {
+                    for (let i = 1; i < x; i++) {
+                        if (this._chessboard.GetPieceByCoordinate(`${x_coord[i]}1`)) {
+                            can_castle_left = false;
+                            break;
+                        }
+                    }
+
+                    if (can_castle_left) {
+                        const square = this._chessboard.GetSquareByCoordinate(this._selected_piece.GetCastleLeftMove());
+                        square.ShowMove();
+                        possible_move_squares.push(square);
+                        this._castle_left_square = square;
+                    }
+                } else {
+                    for (let i = 6; i > x; i--) {
+                        if (this._chessboard.GetPieceByCoordinate(`${x_coord[i]}8`)) {
+                            can_castle_left = false;
+                            break;
+                        }
+                    }
+                    
+                    if (can_castle_left) {
+                        const square = this._chessboard.GetSquareByCoordinate(this._selected_piece.GetCastleLeftMove());
+                        square.ShowMove();
+                        possible_move_squares.push(square);
+                        this._castle_left_square = square;
+                    }
+                }
+            }
+
+            if (right_rook && !right_rook._has_moved) {
+                let can_castle_right = true;
+                const [x, y] = this._selected_piece.GetXYIndices();
+
+                if (this._side == 'white') {
+                    for (let i = 6; i > x; i--) {
+                        if (this._chessboard.GetPieceByCoordinate(`${x_coord[i]}1`)) {
+                            can_castle_right = false;
+                            break;
+                        }
+                    }
+
+                    if (can_castle_right) {
+                        const square = this._chessboard.GetSquareByCoordinate(this._selected_piece.GetCastleRightMove());
+                        square.ShowMove();
+                        possible_move_squares.push(square);
+                        this._castle_right_square = square;
+                    }
+                } else {
+                    for (let i = 1; i < x; i++) {
+                        if (this._chessboard.GetPieceByCoordinate(`${x_coord[i]}8`)) {
+                            can_castle_right = false;
+                            break;
+                        }
+                    }
+                    
+                    if (can_castle_right) {
+                        const square = this._chessboard.GetSquareByCoordinate(this._selected_piece.GetCastleRightMove());
+                        square.ShowMove();
+                        possible_move_squares.push(square);
+                        this._castle_right_square = square;
+                    }
+                }
+            }
+        }
 
         this._possible_move_squares = possible_move_squares;
     }
