@@ -18,7 +18,7 @@ class Server {
         this._express_app.use(express.static(`public`));
     }
 
-    Core(callback) {
+    Start(callback) {
         this._http_server.listen(this.port, callback);
     }
 }
