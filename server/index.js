@@ -226,7 +226,7 @@ const OnClientDisconnect = (socket) => {
 }
 
 const server = new Server();
-server.Core(() => console.log(`Server running on http://localhost:${server.port}`));
+server.Start(() => console.log(`Server running on http://localhost:${server.port}`));
 server._io.on('connection', OnNewConnection);
 
 function OnNewConnection(socket) {
